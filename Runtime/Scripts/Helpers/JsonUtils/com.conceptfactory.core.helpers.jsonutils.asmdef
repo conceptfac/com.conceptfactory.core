@@ -1,0 +1,22 @@
+{
+    "name": "com.conceptfactory.core.helpers.jsonutils",
+    "rootNamespace": "",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "CORE_JSONUTILS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.nuget.newtonsoft-json",
+            "expression": "3.2.1",
+            "define": "CORE_JSONUTILS"
+        }
+    ],
+    "noEngineReferences": false
+}
