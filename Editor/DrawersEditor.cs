@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace Concept.Editor
 {
-
     /// <summary>
     /// A drawer to handle drawing fields with a [HideIf] attribute. When fields have this attribute they will be hidden
     /// in the inspector conditionally based on the evaluation of a field or property.
