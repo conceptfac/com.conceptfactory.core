@@ -11,11 +11,11 @@ public static class ScreenUtils
 {
 
         #region Delegates
-        public delegate void onResolutionChanged(float width, float height);
+        public delegate void onResolutionChanged(int width, int height);
         public static onResolutionChanged OnResolutionChanged;
         #endregion
 
-        public static string GetAspectLabel(Vector2 resolution)
+        public static string GetAspectLabel(Vector2Int resolution)
         {
             // Convertendo para inteiros
             int width = Mathf.RoundToInt(resolution.x);

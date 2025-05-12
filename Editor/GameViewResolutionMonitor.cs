@@ -21,7 +21,7 @@ public static class GameViewResolutionMonitor
 
     private static void CheckResolution()
     {
-        Vector2 currentResolution = GetMainGameViewResolution();
+        Vector2Int currentResolution = GetMainGameViewResolution();
 
         if (lastResolution != currentResolution && currentResolution.x > 0 && currentResolution.y > 0)
         {
