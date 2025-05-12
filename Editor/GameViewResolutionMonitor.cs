@@ -32,7 +32,7 @@ public static class GameViewResolutionMonitor
         }
     }
 
-    public static Vector2 GetMainGameViewResolution()
+    public static Vector2Int GetMainGameViewResolution()
     {
         Type T = Type.GetType("UnityEditor.GameView,UnityEditor");
         MethodInfo GetSizeOfMainGameView = T.GetMethod("GetSizeOfMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
@@ -40,10 +40,16 @@ public static class GameViewResolutionMonitor
         if (GetSizeOfMainGameView != null)
         {
             object resolution = GetSizeOfMainGameView.Invoke(null, null);
-            return (Vector2)resolution;
+
+                if (resolution is Vector2 resolutionVec2)
+                {
+                    // Converter para Vector2Int
+                    return new Vector2Int((int)resolutionVec2.x, (int)resolutionVec2.y);
+                }
+
         }
 
-        return Vector2.zero;
+        return Vector2Int.zero;
     }
 
    

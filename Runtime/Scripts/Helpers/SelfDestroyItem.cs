@@ -4,7 +4,7 @@ using Concept.Helpers;
 using Concept.UI;
 using UnityEngine;
 
-namespace Concept
+namespace Concept.Helpers
 {
     public class SelfDestroyItem : MonoBehaviour
     {

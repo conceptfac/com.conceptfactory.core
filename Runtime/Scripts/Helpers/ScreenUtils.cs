@@ -1,5 +1,6 @@
-using Concept.Core;
-using System;
+Ôªøusing System;
+using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -15,28 +16,34 @@ public static class ScreenUtils
         #endregion
 
         public static string GetAspectLabel(Vector2 resolution)
-    {
-        // Convertendo para inteiros
-        int width = Mathf.RoundToInt(resolution.x);
-        int height = Mathf.RoundToInt(resolution.y);
+        {
+            // Convertendo para inteiros
+            int width = Mathf.RoundToInt(resolution.x);
+            int height = Mathf.RoundToInt(resolution.y);
 
-        float epsilon = 0.01f;
-        float aspect = (float)width / height;
-        bool isPortrait = height > width;
+            // Verifica√ß√£o de validade
+            if (width <= 0 || height <= 0)
+                return "Invalid";
 
-        // Corrigir proporÁ„o para portrait
-        if (isPortrait)
-            aspect = 1f / aspect;
+            // Reduz a fra√ß√£o (ex: 2400x1080 ‚Üí 20:9)
+            int gcd = GCD(width, height);
+            int aspectW = width / gcd;
+            int aspectH = height / gcd;
 
-        // Comparando com as proporÁıes mais comuns
-        if (Mathf.Abs(aspect - (16f / 9f)) < epsilon) return isPortrait ? "9:16" : "16:9";
-        if (Mathf.Abs(aspect - (16f / 10f)) < epsilon) return isPortrait ? "10:16" : "16:10";
-        if (Mathf.Abs(aspect - (4f / 3f)) < epsilon) return isPortrait ? "3:4" : "4:3";
-        if (Mathf.Abs(aspect - (21f / 9f)) < epsilon) return isPortrait ? "9:21" : "21:9";
-        if (Mathf.Abs(aspect - (18f / 9f)) < epsilon) return isPortrait ? "9:18" : "18:9";
+            return $"{aspectW}:{aspectH}";
+        }
 
-        return aspect.ToString("0.00");
-    }
+        private static int GCD(int a, int b)
+        {
+            while (b != 0)
+            {
+                int temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return Mathf.Abs(a);
+        }
+
 
         public static void CloneRectTransform(RectTransform source, RectTransform target)
         {
@@ -47,7 +54,7 @@ public static class ScreenUtils
             target.anchorMax = source.anchorMax;
             target.pivot = source.pivot;
 
-            // Se anchors s„o fixos (n„o esticados), usa anchoredPosition e sizeDelta
+            // Se anchors s√£o fixos (n√£o esticados), usa anchoredPosition e sizeDelta
             if (source.anchorMin == source.anchorMax)
             {
                 target.anchoredPosition = source.anchoredPosition;
@@ -60,10 +67,11 @@ public static class ScreenUtils
                 target.offsetMax = source.offsetMax;
             }
 
-            // TransformaÁıes locais
+            // Transforma√ß√µes locais
             target.localScale = source.localScale;
             target.localRotation = source.localRotation;
         }
+
 
 
     }
