@@ -15,6 +15,10 @@ public static class ScreenUtils
         public static onResolutionChanged OnResolutionChanged;
         #endregion
 
+        public static string GetAspectLabel(int width, int height)
+        {
+            return GetAspectLabel(new Vector2Int(width, height));   
+        }
         public static string GetAspectLabel(Vector2Int resolution)
         {
             // Convertendo para inteiros
