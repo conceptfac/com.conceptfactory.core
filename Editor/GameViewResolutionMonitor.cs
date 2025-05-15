@@ -4,6 +4,7 @@ using UnityEditor;
 using System;
 using System.Reflection;
 using Concept.Helpers;
+using Concept.Core;
 
 namespace Concept.Editor
 {
@@ -27,7 +28,7 @@ public static class GameViewResolutionMonitor
         {
             lastResolution = currentResolution;
             bool isPortrait = currentResolution.y > currentResolution.x;
-                ScreenUtils.OnResolutionChanged?.Invoke(currentResolution.x,currentResolution.y);
+                ScreenMonitor.OnResolutionChanged?.Invoke(currentResolution.x,currentResolution.y);
                 Debug.Log($"[GameViewResolutionMonitor] Resolution changed: {currentResolution.x}x{currentResolution.y} (Aspect Ratio: {ScreenUtils.GetAspectLabel(currentResolution)})");
         }
     }

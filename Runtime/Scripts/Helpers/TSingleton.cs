@@ -15,37 +15,41 @@ namespace Concept.Helpers
         public static T Instance { get { return _instance; } }
         #endregion
 
+        protected static bool firstInstancePersistent;
         #region Fields
-        [SerializeField] private bool _dontDestroyOnLoad = false;
-        [SerializeField] private bool _keepAllInstances = false;
-        [SerializeField] private bool _firstInstancePersistent = false;
-        [SerializeField] private bool _lastInstancePersistent = false;
+        [SerializeField] protected bool _dontDestroyOnLoad;
+        [SerializeField] protected bool _firstInstancePersistent;
+        [SerializeField] protected bool _keepAllInstances;
         #endregion
 
         /// <summary>
         /// Initializes the singleton
         /// </summary>
-        public virtual void Init()
+        protected virtual void Init()
         {
+            firstInstancePersistent = _firstInstancePersistent;
             if (_dontDestroyOnLoad)
                 DontDestroyOnLoad(this.gameObject);
 
             if (_keepAllInstances)
             {
-                if(!_firstInstancePersistent || !_instance)
+                if(!firstInstancePersistent || _instance == null)
                 _instance = this as T;
+                return;
             }
-            else
+
+            if (_instance == null) { 
+                _instance = this as T;
+                return;
+            }
+            
+            if(firstInstancePersistent)
             {
-                if (!_instance) _instance = this as T;
-                else
-                    if (_lastInstancePersistent) { 
-                    Destroy(_instance.gameObject);
-                    _instance = this as T;
-                }
-                else
-                    Destroy(gameObject);
+                Destroy(this.gameObject);
+                return;
             }
+                Destroy(_instance.gameObject);
+                _instance = this as T;
         }
 
 #if UNITY_EDITOR

@@ -1,11 +1,7 @@
 using Concept.Helpers;
 using Concept.UI;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
@@ -20,7 +16,6 @@ namespace Concept.Core
 
         private Vector2 _touchStartPos;
         private float _initialPinchDistance = 0f;
-        private ScreenOrientation _lastScreenOrientation;
 
         #endregion
 
@@ -51,101 +46,6 @@ namespace Concept.Core
             base.Update();
             if (EventSystem.current.IsPointerOverGameObject())
                 return;
-
-            /*
-            if (Touchscreen.current != null && Touchscreen.current.touches.Count > 0)
-            {
-                var touches = Touchscreen.current.touches;
-
-                if (touches.Count == 1)
-                {
-                    var touch = touches[0];
-                    var phase = touch.phase.ReadValue();
-                    var pos = touch.position.ReadValue();
-
-                    Ray ray = Camera.main.ScreenPointToRay(pos);
-                    RaycastHit hit;
-
-                    switch (phase)
-                    {
-                        case UnityEngine.InputSystem.TouchPhase.Began:
-                            _touchStartPos = pos;
-                            CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnTouch(pos.x, pos.y));
-                            OnTouch?.Invoke(pos.x, pos.y);
-                            break;
-
-                        case UnityEngine.InputSystem.TouchPhase.Moved:
-                            float deltaX = pos.x - _touchStartPos.x;
-                            float deltaY = pos.y - _touchStartPos.y;
-
-                            if (Mathf.Abs(deltaX) > 1.5f)
-                            {
-                                _isDragging = true;
-                                CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnDraggingHorizontal(deltaX));
-                            }
-
-                            if (Mathf.Abs(deltaY) > 1.5f)
-                            {
-                                _isDragging = true;
-                                CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnDraggingVertical(deltaY));
-                            }
-                            break;
-
-                        case UnityEngine.InputSystem.TouchPhase.Ended:
-                            if (!_isDragging)
-                            {
-                                if (Physics.Raycast(ray, out hit, Mathf.Infinity))
-                                {
-                                    CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnSelect(hit.collider.gameObject));
-                                    OnSelect?.Invoke(hit);
-                                }
-                                else
-                                {
-                                    CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnRelease(pos.x, pos.y));
-                                    OnRelease?.Invoke(pos.x, pos.y);
-                                }
-                            }
-                            else
-                            {
-                                _isDragging = false;
-                                CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnDragEnded(pos.x, pos.y));
-                                OnCancelDrag?.Invoke(pos.x, pos.y);
-                            }
-                            break;
-                    }
-                }
-                else if (touches.Count == 2)
-                {
-                    var touch1 = touches[0];
-                    var touch2 = touches[1];
-
-                    var pos1 = touch1.position.ReadValue();
-                    var pos2 = touch2.position.ReadValue();
-
-                    float dist = Vector2.Distance(pos1, pos2);
-                    var phase1 = touch1.phase.ReadValue();
-
-                    if (phase1 == UnityEngine.InputSystem.TouchPhase.Began)
-                    {
-                        _initialPinchDistance = dist;
-                        CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnPinchingStart(_initialPinchDistance));
-                    }
-                    else if (phase1 == UnityEngine.InputSystem.TouchPhase.Moved)
-                    {
-                        float pinchDelta = dist - _initialPinchDistance;
-                        if (Mathf.Abs(pinchDelta) > 5f)
-                        {
-                            pinchDelta = Mathf.Clamp(pinchDelta * 0.01f, -0.1f, 0.1f);
-                            CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnPinching(pinchDelta));
-                        }
-
-                        _initialPinchDistance = dist;
-                    }
-                }
-
-                return; // Se for touch, ignora mouse abaixo
-            }
-            */
 
             if (Input.touchCount > 0)
             {
@@ -321,61 +221,6 @@ namespace Concept.Core
                     CallbackHub.CallAction<IInputCallBacks>(cb => cb.OnPinching(scroll * 0.01f));
                 }
             }
-
-
-            if (_lastScreenOrientation != Screen.orientation)
-            {
-                _lastScreenOrientation = Screen.orientation;
-                ScreenUtils.OnResolutionChanged?.Invoke(Screen.width,Screen.height);
-                //ChangeOrientation(_lastScreenOrientation);
-            }
-#if UNITY_EDITOR
-            if (Keyboard.current.oKey.wasPressedThisFrame)
-            {
-                //_isLandscape = !_isLandscape;
-
-                //                SetSize(_isLandscape ? 6 : 5);
-                //              ChangeOrientation(_isLandscape ? ScreenOrientation.LandscapeLeft : ScreenOrientation.Portrait);
-            }
-
-
-#endif
-        }
-
-        /*
-        public static void ChangeOrientation(ScreenOrientation orientation)
-        {
-            Debug.Log("[InputMonitor] ChangeOrientation:" + orientation);
-
-            if (orientation == ScreenOrientation.Portrait || orientation == ScreenOrientation.PortraitUpsideDown)
-            {
-                ScreenUtils.OnPortraitOrientation?.Invoke();
-            }
-            else
-            {
-                ScreenUtils.OnLandscapeOrientation?.Invoke();
-            }
-        }
-*/
-        public static int GetSize()
-        {
-            var gvWndType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
-            var selectedSizeIndexProp = gvWndType.GetProperty("selectedSizeIndex", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            var gvWnd = EditorWindow.GetWindow(gvWndType);
-            var size = selectedSizeIndexProp.GetValue(gvWnd, null);
-            return (int)size;
-        }
-
-        public static void SetSize(int index)
-        {
-            var gvWndType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
-            var selectedSizeIndexProp = gvWndType.GetProperty("selectedSizeIndex", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            var gvWnd = EditorWindow.GetWindow(gvWndType);
-            selectedSizeIndexProp.SetValue(gvWnd, index, null);
-
-          //  ChangeOrientation((index == 6) ? ScreenOrientation.LandscapeLeft : ScreenOrientation.Portrait);
-
-
         }
 
     }

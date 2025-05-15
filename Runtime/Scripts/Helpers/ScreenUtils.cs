@@ -10,11 +10,6 @@ namespace Concept.Helpers
 public static class ScreenUtils
 {
 
-        #region Delegates
-        public delegate void onResolutionChanged(int width, int height);
-        public static onResolutionChanged OnResolutionChanged;
-        #endregion
-
         public static string GetAspectLabel(int width, int height)
         {
             return GetAspectLabel(new Vector2Int(width, height));   
@@ -79,9 +74,4 @@ public static class ScreenUtils
 
 
     }
-
-    [Serializable] public class OnLandscapeOrientationEvent : UnityEvent { }
-    [Serializable] public class OnPortraitOrientationEvent : UnityEvent { }
-
-
 }
