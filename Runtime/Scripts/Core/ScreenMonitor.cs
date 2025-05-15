@@ -19,10 +19,6 @@ public class ScreenMonitor : TSingleton<ScreenMonitor>
     public static onResolutionChanged OnResolutionChanged;
         #endregion
 
-        private void OnEnable()
-        {
-            DontDestroyOnLoad(this);
-        }
 
         protected override void Update()
         {

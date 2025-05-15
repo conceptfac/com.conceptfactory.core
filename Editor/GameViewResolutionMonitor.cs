@@ -59,5 +59,5 @@ public static class GameViewResolutionMonitor
 
 
 }
-#endif
 }
+#endif
