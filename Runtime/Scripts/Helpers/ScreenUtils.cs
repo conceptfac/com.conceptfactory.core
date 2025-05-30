@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -7,29 +8,52 @@ using UnityEngine.Events;
 namespace Concept.Helpers
 {
 
-public static class ScreenUtils
-{
+    public static class ScreenUtils
+    {
 
         public static string GetAspectLabel(int width, int height)
         {
-            return GetAspectLabel(new Vector2Int(width, height));   
+            return GetAspectLabel(new Vector2Int(width, height));
         }
         public static string GetAspectLabel(Vector2Int resolution)
         {
-            // Convertendo para inteiros
             int width = Mathf.RoundToInt(resolution.x);
             int height = Mathf.RoundToInt(resolution.y);
 
-            // Verificação de validade
             if (width <= 0 || height <= 0)
                 return "Invalid";
 
-            // Reduz a fração (ex: 2400x1080 → 20:9)
-            int gcd = GCD(width, height);
-            int aspectW = width / gcd;
-            int aspectH = height / gcd;
+            float aspect = (float)width / height;
 
-            return $"{aspectW}:{aspectH}";
+            // Proporções conhecidas com margem de erro
+            var knownRatios = new Dictionary<string, float>
+    {
+    { "1:1", 1f },
+    { "4:3", 4f / 3f },
+    { "3:2", 3f / 2f },
+    { "5:4", 5f / 4f },
+    { "16:10", 16f / 10f },
+    { "16:9", 16f / 9f },
+    { "18:9", 18f / 9f },
+    { "19.5:9", 19.5f / 9f },
+    { "20:9", 20f / 9f },
+    { "21:9", 21f / 9f },
+    { "32:9", 32f / 9f },
+    { "2.35:1", 2.35f },
+    { "2.39:1", 2.39f }
+    };
+
+            const float tolerance = 0.01f; // margem de erro aceitável
+
+            foreach (var pair in knownRatios)
+            {
+                if (Mathf.Abs(aspect - pair.Value) < tolerance)
+                    return pair.Key;
+            }
+
+            // Se não for conhecido, retorna a forma reduzida
+            int gcd = GCD(width, height);
+            return $"{width / gcd}:{height / gcd}";
         }
 
         private static int GCD(int a, int b)
@@ -40,8 +64,9 @@ public static class ScreenUtils
                 b = a % b;
                 a = temp;
             }
-            return Mathf.Abs(a);
+            return a;
         }
+
 
 
         public static void CloneRectTransform(RectTransform source, RectTransform target)
