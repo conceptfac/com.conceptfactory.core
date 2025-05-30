@@ -24,34 +24,42 @@ namespace Concept.Helpers
                 return "Invalid";
 
             float aspect = (float)width / height;
+            float aspectInverted = (float)height / width;
 
-            // Proporções conhecidas com margem de erro
             var knownRatios = new Dictionary<string, float>
     {
-    { "1:1", 1f },
-    { "4:3", 4f / 3f },
-    { "3:2", 3f / 2f },
-    { "5:4", 5f / 4f },
-    { "16:10", 16f / 10f },
-    { "16:9", 16f / 9f },
-    { "18:9", 18f / 9f },
-    { "19.5:9", 19.5f / 9f },
-    { "20:9", 20f / 9f },
-    { "21:9", 21f / 9f },
-    { "32:9", 32f / 9f },
-    { "2.35:1", 2.35f },
-    { "2.39:1", 2.39f }
+        { "1:1", 1f },
+        { "4:3", 4f / 3f },
+        { "3:2", 3f / 2f },
+        { "5:4", 5f / 4f },
+        { "16:10", 16f / 10f },
+        { "16:9", 16f / 9f },
+        { "18:9", 18f / 9f },
+        { "19.5:9", 19.5f / 9f },
+        { "20:9", 20f / 9f },
+        { "21:9", 21f / 9f },
+        { "32:9", 32f / 9f },
+        { "2.35:1", 2.35f },
+        { "2.39:1", 2.39f },
     };
 
-            const float tolerance = 0.01f; // margem de erro aceitável
+            const float tolerance = 0.015f;
 
+            // Tenta encontrar proporção padrão
             foreach (var pair in knownRatios)
             {
                 if (Mathf.Abs(aspect - pair.Value) < tolerance)
                     return pair.Key;
+
+                if (Mathf.Abs(aspectInverted - pair.Value) < tolerance)
+                {
+                    // Inverte o rótulo da proporção também (ex: "4:3" vira "3:4")
+                    string[] parts = pair.Key.Split(':');
+                    return $"{parts[1]}:{parts[0]}";
+                }
             }
 
-            // Se não for conhecido, retorna a forma reduzida
+            // Se não for conhecida, retorna a forma reduzida
             int gcd = GCD(width, height);
             return $"{width / gcd}:{height / gcd}";
         }
@@ -66,7 +74,6 @@ namespace Concept.Helpers
             }
             return a;
         }
-
 
 
         public static void CloneRectTransform(RectTransform source, RectTransform target)
