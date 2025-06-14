@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Xml;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Concept.Helpers
@@ -22,6 +18,8 @@ public class DebugPanel : MonoBehaviour
 
         #region Fields
 
+        [SerializeField] bool _startVisible = true;
+        public bool visible {  get => _startVisible; set { _startVisible = value; _debugPanel.SetActive(value); }}
         [SerializeField] bool _startFolded = true;
 
         [SerializeField] bool _followUser = true;
@@ -29,10 +27,11 @@ public class DebugPanel : MonoBehaviour
         [SerializeField] float _followSpeed = 1f;
 
         [Header("Components")]
-        [SerializeField] TextMeshProUGUI TMP_DebugText;
-        [SerializeField] bool _showMessages = false;
-        [SerializeField] bool _showWarnings = true;
-        [SerializeField] bool _showErrors = true;
+        [SerializeField] private GameObject _debugPanel;
+        [SerializeField] private TextMeshProUGUI TMP_DebugText;
+        [SerializeField] private bool _showMessages = false;
+        [SerializeField] private bool _showWarnings = true;
+        [SerializeField] private bool _showErrors = true;
         private Transform _transform;
         private Transform _mainCameraTransform;
         
@@ -64,14 +63,12 @@ public class DebugPanel : MonoBehaviour
                 Destroy(gameObject);
         
             _mainCameraTransform = Camera.main.transform;
-            
-            
+
+            _debugPanel.SetActive(_startVisible);
+
+
             animator?.SetBool("folded", _startFolded);
 
-#if OCULUS
-            if(GestureMonitor.Instance)
-            GestureMonitor.Instance.OnPinchLeft += SetFold;
-#endif
         }
 
         private void Update()
@@ -81,10 +78,7 @@ public class DebugPanel : MonoBehaviour
 
         private void OnDestroy()
         {
-#if OCULUS
-            if (GestureMonitor.Instance)
-                GestureMonitor.Instance.OnPinchLeft -= SetFold;
-#endif
+
         }
 
         #endregion
@@ -98,27 +92,29 @@ public class DebugPanel : MonoBehaviour
         /// <param name="stackTrace"></param>
         /// <param name="type"></param>
 
-        private void Debug(string condition, string stackTrace = "", LogType type = LogType.Log)
+        public static void Debug(string condition, string stackTrace = "", LogType type = LogType.Log)
         {
+            if(Instance == null) return;
+
             string msg = null;
 
             // Se o stackTrace não for fornecido, tente gerar um a partir de uma exceção
             if (string.IsNullOrEmpty(stackTrace))
             {
-                stackTrace = GetStackTrace();
+                stackTrace = Instance.GetStackTrace();
             }
 
 
             switch (type)
             {
                 case LogType.Error:
-                    msg = _showErrors ? $"\n<color=#ff0000>{condition}\n{stackTrace}</color>":null;
+                    msg = Instance._showErrors ? $"\n<color=#ff0000>{condition}\n{stackTrace}</color>":null;
                     break;
                 case LogType.Warning:
-                    msg = _showWarnings ? $"\n<color=#F77E00>{condition}</color>" : null;
+                    msg = Instance._showWarnings ? $"\n<color=#F77E00>{condition}</color>" : null;
                     break;
                 case LogType.Log:
-                    msg = _showMessages ? $"\n<color=#ffffff>{condition}</color>" : null;
+                    msg = Instance._showMessages ? $"\n<color=#ffffff>{condition}</color>" : null;
                     break;
                     default:
                     msg = $"\n<color=#8184BE>{condition}</color>";
@@ -129,7 +125,7 @@ public class DebugPanel : MonoBehaviour
 
             
             if(msg != null)
-            TMP_DebugText.text += msg;
+            Instance.TMP_DebugText.text += msg;
         }
 
 
@@ -161,7 +157,7 @@ public class DebugPanel : MonoBehaviour
 
 
         [ContextMenu("Set Fold|Unfold")]
-        private void SetFold()
+        public void SetFold()
         {
             bool folded = animator.GetBool("folded");
             animator.SetBool("folded", !folded);
