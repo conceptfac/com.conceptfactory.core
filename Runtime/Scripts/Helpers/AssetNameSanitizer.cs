@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 using UnityEditor;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -45,3 +46,4 @@ namespace Concept.Helpers
         }
     }
 }
+#endif
