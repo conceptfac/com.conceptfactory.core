@@ -15,7 +15,7 @@ namespace Concept.Helpers
     {
         #region Consts
 
-        private const string IP_SERVICE_URL = "https://api.ipify.org?format=json";
+        private const string IP_SERVICE_URL = "https://api.ipify.org";
 
 
         #endregion
