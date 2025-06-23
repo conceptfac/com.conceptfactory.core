@@ -50,11 +50,15 @@ namespace Concept.Core
         /// <param name="action">The action to perform on each callback.</param>
         public static void CallAction<T>(Action<T> action) where T : class
         {
-            foreach (var callback in callBacks)
+            var snapshot = callBacks.ToArray(); // Cria uma cópia (snapshot) da lista atual
+
+            foreach (var callback in snapshot)
             {
-                if (callback is T) action(callback as T);
+                if (callback is T)
+                    action(callback as T);
             }
         }
+
         /// <summary>
         /// Calls an asynchronous task on all registered callbacks of type <typeparamref name="T"/>.
         /// If a callback is of the specified type, the task is executed with that callback as a parameter.

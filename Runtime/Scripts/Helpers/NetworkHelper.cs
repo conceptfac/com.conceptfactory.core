@@ -1,22 +1,31 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Concept.Helpers
 {
     /// <summary>
     ///  This class is to get network informations.
     /// </summary>
-    public static class NetworkHelper 
+    public static class NetworkHelper
     {
+        #region Consts
+
+        private const string IP_SERVICE_URL = "https://api.ipify.org?format=json";
+
+
+        #endregion
 
         public delegate void onInternetConnectionChanged(bool status);
         public static onInternetConnectionChanged OnInternetConnectionChanged;
 
 
         static NetworkHelper() { CheckInternetConnection(); } //Start to check by initialization
+
 
         /// <summary>
         /// Checks internet connection
@@ -89,6 +98,87 @@ namespace Concept.Helpers
             }
         }
 
+        public static async Task<List<string>> GetImageListAsync(string directoryUrl)
+        {
+            List<string> imageUrls = new List<string>();
+
+            using (UnityWebRequest request = UnityWebRequest.Get(directoryUrl))
+            {
+                var operation = request.SendWebRequest();
+                while (!operation.isDone)
+                    await Task.Yield();
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"Erro ao buscar lista de imagens: {request.error}");
+                    return imageUrls;
+                }
+
+                string html = request.downloadHandler.text;
+
+                // Regex pra pegar links de .jpg, .png, etc
+                MatchCollection matches = Regex.Matches(html, @"href\s*=\s*[""']([^""']+\.(png|jpg|jpeg|gif))[""']", RegexOptions.IgnoreCase);
+
+                foreach (Match match in matches)
+                {
+                    string relativePath = match.Groups[1].Value;
+                    string fullUrl = directoryUrl + relativePath;
+                    imageUrls.Add(fullUrl);
+                }
+            }
+
+            return imageUrls;
+        }
+
+        /// <summary>
+        /// Request an image from web and return it as a Texture
+        /// </summary>
+        /// <param name="url">Image URL to load</param>
+        /// <returns>Loaded image as texture.</returns>
+        public static async Task<Texture2D> LoadTextureFromUrlAsync(string url)
+        {
+            using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(url))
+            {
+                var operation = request.SendWebRequest();
+
+                while (!operation.isDone)
+                    await Task.Yield();
+
+#if UNITY_2020_1_OR_NEWER
+                if (request.result != UnityWebRequest.Result.Success)
+#else
+            if (request.isNetworkError || request.isHttpError)
+#endif
+                {
+                    Debug.LogError($"Failed to download image `{url}` Error: {request.error}");
+                    return null;
+                }
+                else
+                {
+                    return DownloadHandlerTexture.GetContent(request);
+                }
+            }
+        }
+
+        public static async Task<string> GetPublicIP()
+        {
+            string publicIP = "0.0.0.0";
+            using (UnityWebRequest request = UnityWebRequest.Get(IP_SERVICE_URL))
+            {
+                await request.SendWebRequest();
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    publicIP = request.downloadHandler.text.Trim();
+                }
+                else
+                {
+                    Debug.LogError("Error to get Public IP: " + request.error);
+                }
+            }
+
+            return publicIP;
+        }
 
     }
 }
