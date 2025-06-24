@@ -1,6 +1,3 @@
-#if FUSION2
-using Fusion;
-#endif
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -19,20 +16,6 @@ namespace Concept.Helpers
 
             return tcs.Task;
         }
-
-
-#if FUSION2
-        // Método para aguardar a conclusão do carregamento da cena
-        public static async Task WaitForSceneLoadAsync(NetworkSceneAsyncOp asyncLoad)
-        {
-            // Enquanto a cena não estiver carregada, aguarde
-            while (!asyncLoad.IsDone)
-            {
-                await Task.Yield(); // Aguarda até o próximo frame
-            }
-        }
-#endif
-
 
         // Método para aguardar a conclusão do carregamento da cena
         public static async Task WaitForSceneLoadAsync(AsyncOperation asyncLoad)
