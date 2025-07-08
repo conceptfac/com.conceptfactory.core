@@ -1,13 +1,14 @@
+#if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Concept.Helpers
+namespace Concept.Editor
 {
 
-public static class ImageUtils
-{
-        public static Sprite LoadSpriteFromProjectURL(string projectUrl)
+public static class EditorImageUtils
+    {
+        public static Sprite LoadSpriteFromProjectPath(string projectUrl)
         {
             // Extrai GUID e Sprite Name
             string guid = ExtractGuid(projectUrl);
@@ -63,3 +64,4 @@ public static class ImageUtils
     }
 
 }
+#endif
