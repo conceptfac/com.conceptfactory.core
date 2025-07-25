@@ -78,6 +78,34 @@ namespace Concept.Helpers
         /// <summary>
         /// This coroutine check every a second if has internet connection
         /// </summary>
+        private static async void CheckInternetConnection()
+        {
+            bool connected = NetworkHelper.IsWiFiConnected();
+            while (true)
+            {
+                bool now = NetworkHelper.IsWiFiConnected();
+                if (!connected && now)
+                {
+                    connected = true;
+                    OnInternetConnectionChanged?.Invoke(true);
+                }
+                else if (connected && !now)
+                {
+                    connected = false;
+                    OnInternetConnectionChanged?.Invoke(false);
+                }
+
+                // Simula delay de 1 segundo
+                float elapsed = 0f;
+                while (elapsed < 1f)
+                {
+                    await Task.Yield();
+                    elapsed += Time.unscaledDeltaTime;
+                }
+            }
+        }
+
+        /*
         public static async void CheckInternetConnection()
         {
             bool conected = NetworkHelper.IsWiFiConnected();
@@ -97,6 +125,7 @@ namespace Concept.Helpers
                 await Task.Delay(1000);
             }
         }
+        */
 
         public static async Task<List<string>> GetImageListAsync(string directoryUrl)
         {
@@ -150,7 +179,7 @@ namespace Concept.Helpers
             if (request.isNetworkError || request.isHttpError)
 #endif
                 {
-                    Debug.LogError($"Failed to download image `{url}` Error: {request.error}");
+                    Debug.LogWarning($"Failed to download image `{url}` Error: {request.error}");
                     return null;
                 }
                 else

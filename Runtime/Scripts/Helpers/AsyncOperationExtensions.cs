@@ -39,6 +39,24 @@ namespace Concept.Helpers
             if (delay < 0)
                 await Task.Yield();
             else
+            {
+                int elapsed = 0;
+                while (elapsed < delay)
+                {
+                    await Task.Yield();
+                    elapsed += (int)(Time.unscaledDeltaTime * 1000);
+                }
+            }
+            action?.Invoke();
+        }
+
+
+        [Obsolete("Task.Delay is multithread not works in WebGL")]
+        public async static void CallDelayedActionOld(Action action, int delay = -1)
+        {
+            if (delay < 0)
+                await Task.Yield();
+            else
                 await Task.Delay(delay);
 
             action?.Invoke();
