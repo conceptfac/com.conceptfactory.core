@@ -162,7 +162,7 @@ namespace Concept.Helpers
         {
             List<string> imageUrls = new List<string>();
 
-            string jsonUrl = directoryUrl + "files.json";
+            string jsonUrl = CombineUrl( directoryUrl , "files.json");
 
             using (UnityWebRequest request = UnityWebRequest.Get(jsonUrl))
             {
@@ -181,12 +181,18 @@ namespace Concept.Helpers
 
                 foreach (string file in data.files)
                 {
-                    string fullUrl = directoryUrl +"/"+ file;
+                    string fullUrl = CombineUrl(directoryUrl , file);
                     imageUrls.Add(fullUrl);
                 }
             }
 
             return imageUrls;
+        }
+
+        public static string CombineUrl(string baseUrl, string relativePath)
+        {
+            if (!baseUrl.EndsWith("/")) baseUrl += "/";
+            return baseUrl + relativePath.TrimStart('/');
         }
 
         /// <summary>
