@@ -139,7 +139,7 @@ namespace Concept.Helpers
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogError($"Erro ao buscar lista de imagens: {request.error}");
+                    Debug.LogError($"Erro ao listar imagens em '{directoryUrl}'.\nErro: {request.error}");
                     return imageUrls;
                 }
 
@@ -152,6 +152,36 @@ namespace Concept.Helpers
                 {
                     string relativePath = match.Groups[1].Value;
                     string fullUrl = directoryUrl + relativePath;
+                    imageUrls.Add(fullUrl);
+                }
+            }
+
+            return imageUrls;
+        }
+        public static async Task<List<string>> GetImageJsonListAsync(string directoryUrl)
+        {
+            List<string> imageUrls = new List<string>();
+
+            string jsonUrl = directoryUrl + "files.json";
+
+            using (UnityWebRequest request = UnityWebRequest.Get(jsonUrl))
+            {
+                var operation = request.SendWebRequest();
+                while (!operation.isDone)
+                    await Task.Yield();
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"Erro ao listar imagens em '{directoryUrl}'.\nErro: {request.error}");
+                    return imageUrls;
+                }
+
+                string jsonResponse = request.downloadHandler.text;
+                ImageList data = JsonUtility.FromJson<ImageList>(jsonResponse);
+
+                foreach (string file in data.files)
+                {
+                    string fullUrl = directoryUrl +"/"+ file;
                     imageUrls.Add(fullUrl);
                 }
             }
