@@ -1,0 +1,25 @@
+{
+    "name": "com.conceptfactory.input",
+    "rootNamespace": "Concept.Input",
+    "references": [
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:5dce1e5efc474ce4791e7ab351a3ddb4"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "CONCEPT_INPUT"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.14.0",
+            "define": "CONCEPT_INPUT"
+        }
+    ],
+    "noEngineReferences": false
+}
