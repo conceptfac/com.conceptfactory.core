@@ -1,12 +1,13 @@
+using Concept.Core;
 using Concept.Helpers;
-using Concept.UI;
-using System.Reflection;
+using Concept.Input;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-namespace Concept.Core
+namespace Concept.Input
 {
+    
     public class InputMonitor : TSingleton<InputMonitor>
     {
         #region Properties
@@ -47,15 +48,15 @@ namespace Concept.Core
             if (EventSystem.current.IsPointerOverGameObject())
                 return;
 
-            if (Input.touchCount > 0)
+            if (UnityEngine.Input.touchCount > 0)
             {
                 Ray ray = default;
                 RaycastHit hit;
 
                 //Touch Actions
-                if (Input.touchCount == 1)  //1 Finger Touch
+                if (UnityEngine.Input.touchCount == 1)  //1 Finger Touch
                 {
-                    Touch touch = Input.GetTouch(0);  // Captura o primeiro toque
+                    Touch touch = UnityEngine.Input.GetTouch(0);  // Captura o primeiro toque
                     ray = Camera.main.ScreenPointToRay(touch.position);
 
                     switch (touch.phase)
@@ -122,10 +123,10 @@ namespace Concept.Core
                     }
 
                 }
-                else if (Input.touchCount == 2) // 2 Fingers Touch
+                else if (UnityEngine.Input.touchCount == 2) // 2 Fingers Touch
                 {
-                    Touch touch1 = Input.GetTouch(0);
-                    Touch touch2 = Input.GetTouch(1);
+                    Touch touch1 = UnityEngine.Input.GetTouch(0);
+                    Touch touch2 = UnityEngine.Input.GetTouch(1);
 
                     switch (touch1.phase)
                     {
@@ -149,7 +150,7 @@ namespace Concept.Core
                             break;
                     }
                 }
-                else if (Input.touchCount == 3) // 3 Fingers Touch NOT IMPLEMENTED YET
+                else if (UnityEngine.Input.touchCount == 3) // 3 Fingers Touch NOT IMPLEMENTED YET
                 {
 
                 }
@@ -224,4 +225,5 @@ namespace Concept.Core
         }
 
     }
+
 }
