@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Concept.UI
+namespace Concept.Input
 {
     public interface IInputCallBacks
     {

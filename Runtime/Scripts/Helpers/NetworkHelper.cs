@@ -78,6 +78,34 @@ namespace Concept.Helpers
         /// <summary>
         /// This coroutine check every a second if has internet connection
         /// </summary>
+        private static async void CheckInternetConnection()
+        {
+            bool connected = NetworkHelper.IsWiFiConnected();
+            while (true)
+            {
+                bool now = NetworkHelper.IsWiFiConnected();
+                if (!connected && now)
+                {
+                    connected = true;
+                    OnInternetConnectionChanged?.Invoke(true);
+                }
+                else if (connected && !now)
+                {
+                    connected = false;
+                    OnInternetConnectionChanged?.Invoke(false);
+                }
+
+                // Simula delay de 1 segundo
+                float elapsed = 0f;
+                while (elapsed < 1f)
+                {
+                    await Task.Yield();
+                    elapsed += Time.unscaledDeltaTime;
+                }
+            }
+        }
+
+        /*
         public static async void CheckInternetConnection()
         {
             bool conected = NetworkHelper.IsWiFiConnected();
@@ -97,6 +125,7 @@ namespace Concept.Helpers
                 await Task.Delay(1000);
             }
         }
+        */
 
         public static async Task<List<string>> GetImageListAsync(string directoryUrl)
         {
@@ -110,7 +139,7 @@ namespace Concept.Helpers
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogError($"Erro ao buscar lista de imagens: {request.error}");
+                    Debug.LogError($"Erro ao listar imagens em '{directoryUrl}'.\nErro: {request.error}");
                     return imageUrls;
                 }
 
@@ -128,6 +157,42 @@ namespace Concept.Helpers
             }
 
             return imageUrls;
+        }
+        public static async Task<List<string>> GetImageJsonListAsync(string directoryUrl)
+        {
+            List<string> imageUrls = new List<string>();
+
+            string jsonUrl = CombineUrl( directoryUrl , "files.json");
+
+            using (UnityWebRequest request = UnityWebRequest.Get(jsonUrl))
+            {
+                var operation = request.SendWebRequest();
+                while (!operation.isDone)
+                    await Task.Yield();
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"Erro ao listar imagens em '{directoryUrl}'.\nErro: {request.error}");
+                    return imageUrls;
+                }
+
+                string jsonResponse = request.downloadHandler.text;
+                ImageList data = JsonUtility.FromJson<ImageList>(jsonResponse);
+
+                foreach (string file in data.files)
+                {
+                    string fullUrl = CombineUrl(directoryUrl , file);
+                    imageUrls.Add(fullUrl);
+                }
+            }
+
+            return imageUrls;
+        }
+
+        public static string CombineUrl(string baseUrl, string relativePath)
+        {
+            if (!baseUrl.EndsWith("/")) baseUrl += "/";
+            return baseUrl + relativePath.TrimStart('/');
         }
 
         /// <summary>
@@ -150,7 +215,7 @@ namespace Concept.Helpers
             if (request.isNetworkError || request.isHttpError)
 #endif
                 {
-                    Debug.LogError($"Failed to download image `{url}` Error: {request.error}");
+                    Debug.LogWarning($"Failed to download image `{url}` Error: {request.error}");
                     return null;
                 }
                 else
