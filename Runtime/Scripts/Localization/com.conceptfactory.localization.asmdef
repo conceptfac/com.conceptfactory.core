@@ -11,7 +11,15 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
+    "defineConstraints": [
+        "CONCEPT_LOCALIZATION"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.localization",
+            "expression": "1.5.7",
+            "define": "CONCEPT_LOCALIZATION"
+        }
+    ],
     "noEngineReferences": false
 }
