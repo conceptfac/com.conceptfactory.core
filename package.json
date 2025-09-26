@@ -5,7 +5,7 @@
   "type": "tool",
   "unity": "6000.0",
   "unityRelease": "43f1",
-  "description": "Core package of ConceptFactory, providing essential utilities and components for building robust projects. It includes common system abstractions and data management tools, serving as the foundation for other packages in the collection. Ideal for use in any Unity project for reusable, high-performance solutions.",
+  "description": "Core package of ConceptFactory, providing essential utilities and components for building robust projects. It includes common system abstractions and data management tools, serving as the foundation for other packages in the collection. Ideal for use in any Unity project for reusable, high-performance solutions.\n\nhttps://github.com/conceptfac/com.conceptfactory.core.git",
   "documentationUrl": "",
   "changelogUrl": "",
   "license": "Source-Available \u2013 No Modification",
