@@ -56,6 +56,70 @@ namespace Concept.Editor
     }
 
 
+    [CustomPropertyDrawer(typeof(ShowIfAttribute))]
+    public class ShowIfAttributeDrawer : PropertyDrawer
+    {
+        private bool ShouldShow(SerializedProperty property)
+        {
+            ShowIfAttribute showIf = attribute as ShowIfAttribute;
+            if (showIf == null) return true;
+
+            // Tenta encontrar a propriedade de condição
+            SerializedProperty conditionProperty = property.serializedObject.FindProperty(showIf.condition);
+
+            // Se não encontrou, tenta como campo relativo
+            if (conditionProperty == null)
+            {
+                string parentPath = property.propertyPath.Contains(".")
+                    ? property.propertyPath.Substring(0, property.propertyPath.LastIndexOf('.'))
+                    : "";
+
+                if (!string.IsNullOrEmpty(parentPath))
+                {
+                    conditionProperty = property.serializedObject.FindProperty(parentPath + "." + showIf.condition);
+                }
+            }
+
+            if (conditionProperty != null)
+            {
+                switch (conditionProperty.propertyType)
+                {
+                    case SerializedPropertyType.Boolean:
+                        return conditionProperty.boolValue;
+                    case SerializedPropertyType.Enum:
+                        // Para enums, você pode precisar de lógica adicional
+                        return conditionProperty.enumValueIndex != 0;
+                    case SerializedPropertyType.ObjectReference:
+                        return conditionProperty.objectReferenceValue != null;
+                    default:
+                        Debug.LogWarning($"ShowIf não suporta o tipo: {conditionProperty.propertyType}");
+                        return true;
+                }
+            }
+
+            Debug.LogWarning($"ShowIf não encontrou a propriedade: {showIf.condition}");
+            return true;
+        }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            if (ShouldShow(property))
+            {
+                EditorGUI.PropertyField(position, property, label, true);
+            }
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            if (ShouldShow(property))
+            {
+                return EditorGUI.GetPropertyHeight(property, label, true);
+            }
+            return -EditorGUIUtility.standardVerticalSpacing; // Esconde completamente
+        }
+    }
+
+    /*
 
     [CustomPropertyDrawer(typeof(ShowIfAttribute))]
     public class ShowIfAttributeDrawer : PropertyDrawer
@@ -102,7 +166,6 @@ namespace Concept.Editor
 
 
     }
-    /*
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
 
