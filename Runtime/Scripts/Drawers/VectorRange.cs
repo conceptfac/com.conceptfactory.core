@@ -1,4 +1,8 @@
+#if UNITY_EDITOR
 using UnityEngine;
+
+namespace Concept.UI
+{
 
 public class VectorRangeAttribute : PropertyAttribute
 {
@@ -28,3 +32,6 @@ public class Vector2RangeAttribute : PropertyAttribute
         this.names = new string[] { minName, maxName };
     }
 }
+
+}
+#endif
