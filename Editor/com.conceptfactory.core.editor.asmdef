@@ -1,6 +1,6 @@
 {
     "name": "com.conceptfactory.core.editor",
-    "rootNamespace": "",
+    "rootNamespace": "Concept.Editor",
     "references": [
         "GUID:5dce1e5efc474ce4791e7ab351a3ddb4"
     ],
