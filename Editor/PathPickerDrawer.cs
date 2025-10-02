@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+Ôªø#if UNITY_EDITOR
 using Concept.UI;
 using UnityEditor;
 using UnityEngine;
@@ -19,14 +19,14 @@ namespace Concept.Editor
 
             PathPickerAttribute pathAttribute = (PathPickerAttribute)attribute;
 
-            // Divide o espaÁo em campo de texto e bot„o
+            // Divide o espa√ßo em campo de texto e bot√£o
             Rect fieldRect = new Rect(position.x, position.y, position.width - 80, position.height);
             Rect buttonRect = new Rect(position.x + position.width - 75, position.y, 70, position.height);
 
             // Campo de texto
             property.stringValue = EditorGUI.TextField(fieldRect, label, property.stringValue);
 
-            // Bot„o de seleÁ„o
+            // Bot√£o de sele√ß√£o
             if (GUI.Button(buttonRect, "Select"))
             {
                 string selectedPath = EditorUtility.OpenFolderPanel("Select Folder",
@@ -34,12 +34,28 @@ namespace Concept.Editor
 
                 if (!string.IsNullOrEmpty(selectedPath))
                 {
-                    // Converte para caminho relativo se estiver dentro do projeto
-                    string projectPath = Application.dataPath.Replace("/Assets", "");
-                    if (selectedPath.StartsWith(projectPath))
+
+                    string projectRoot = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, ".."));
+                    string fullSelected = System.IO.Path.GetFullPath(selectedPath);
+
+                    if (fullSelected.StartsWith(projectRoot))
                     {
-                        selectedPath = selectedPath.Substring(projectPath.Length + 1);
+                        // gera caminho relativo √† raiz do projeto
+                        string relative = System.IO.Path.GetRelativePath(projectRoot, fullSelected).Replace("\\", "/");
+
+                        // se n√£o come√ßa com ".", adiciona "../" porque t√° fora da Assets
+                        if (!relative.StartsWith("."))
+                            relative = "../" + relative;
+
+                        selectedPath = relative;
                     }
+                    else
+                    {
+                        // fora do projeto ‚Üí mant√©m absoluto
+                        selectedPath = fullSelected;
+                    }
+
+
 
                     property.stringValue = selectedPath;
                     property.serializedObject.ApplyModifiedProperties();
@@ -49,7 +65,7 @@ namespace Concept.Editor
 
         private string GetInitialPath(string currentPath, string defaultPath)
         {
-            string initialPath = Application.dataPath; // Fallback padr„o
+            string initialPath = Application.dataPath; // Fallback padr√£o
 
             try
             {
@@ -58,7 +74,7 @@ namespace Concept.Editor
                 {
                     if (System.IO.Path.IsPathRooted(currentPath))
                     {
-                        // Se j· È caminho absoluto, verifica se existe
+                        // Se j√° √© caminho absoluto, verifica se existe
                         if (System.IO.Directory.Exists(currentPath))
                             return currentPath;
                     }
@@ -71,7 +87,7 @@ namespace Concept.Editor
                     }
                 }
 
-                // Prioridade 2: Caminho padr„o do atributo
+                // Prioridade 2: Caminho padr√£o do atributo
                 if (!string.IsNullOrEmpty(defaultPath))
                 {
                     if (System.IO.Path.IsPathRooted(defaultPath))
@@ -102,5 +118,5 @@ namespace Concept.Editor
             return EditorGUIUtility.singleLineHeight;
         }
     }
-#endif
 }
+#endif

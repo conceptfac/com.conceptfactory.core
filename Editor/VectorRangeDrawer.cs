@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 using Concept.UI;
@@ -254,3 +255,4 @@ namespace Concept.Editor
     }
 
 }
+#endif
