@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using static UnityEngine.AddressableAssets.Addressables;
+using System.Linq;
 
 namespace Concept.Addressables
 {
@@ -86,7 +87,83 @@ namespace Concept.Addressables
         /// <param name="groupName">Addressables group name</param>
         /// <param name="progressCallback">Optional progress callback</param>
         /// <returns>True if download successful</returns>
+        /// 
+
         public static async Task<bool> DownloadEntireGroupAsync(string groupName, Action<float> progressCallback = null)
+        {
+            try
+            {
+                Debug.Log($"[AddressablesManager] Downloading entire group: {groupName}");
+
+                // Primeiro, carrega as localizações para a chave (que é o nome do grupo)
+                var locationsHandle = LoadResourceLocationsAsync(groupName);
+                await locationsHandle.Task;
+
+                if (locationsHandle.Status != AsyncOperationStatus.Succeeded || locationsHandle.Result == null || locationsHandle.Result.Count == 0)
+                {
+                    Debug.LogError($"[AddressablesManager] Group {groupName} not found or has no assets");
+                    Release(locationsHandle);
+                    return false;
+                }
+
+                // Extrai as chaves únicas das localizações
+                var keys = locationsHandle.Result.Select(loc => loc.PrimaryKey).Distinct().ToList();
+                Release(locationsHandle);
+
+                // Verifica o tamanho do download para todas as chaves
+                AsyncOperationHandle<long> sizeOperation = GetDownloadSizeAsync(keys);
+                await sizeOperation.Task;
+
+                if (sizeOperation.Status == AsyncOperationStatus.Succeeded)
+                {
+                    if (sizeOperation.Result == 0)
+                    {
+                        Debug.Log($"[AddressablesManager] Group {groupName} already downloaded");
+                        Release(sizeOperation);
+                        return true;
+                    }   
+
+                    Debug.Log($"[AddressablesManager] Downloading group {groupName} - Size: {sizeOperation.Result} bytes");
+
+                    // Download das dependências para todas as chaves
+                    AsyncOperationHandle downloadOperation = DownloadDependenciesAsync(keys, MergeMode.Union, false);
+
+                    // Monitorar progresso
+                    while (!downloadOperation.IsDone)
+                    {
+                        progressCallback?.Invoke(downloadOperation.PercentComplete);
+                        await Task.Yield();
+                    }
+
+                    if (downloadOperation.Status == AsyncOperationStatus.Succeeded)
+                    {
+                        Debug.Log($"[AddressablesManager] Group {groupName} downloaded successfully");
+                        progressCallback?.Invoke(1f);
+                        Release(downloadOperation);
+                        Release(sizeOperation);
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.LogError($"[AddressablesManager] Failed to download group: {groupName}");
+                        Release(downloadOperation);
+                        Release(sizeOperation);
+                        return false;
+                    }
+                }
+
+                Release(sizeOperation);
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AddressablesManager] Error downloading group {groupName}: {e.Message}");
+                return false;
+            }
+        }
+
+
+        public static async Task<bool> DownloadEntireGroupAsyncOLD(string groupName, Action<float> progressCallback = null)
         {
             try
             {
