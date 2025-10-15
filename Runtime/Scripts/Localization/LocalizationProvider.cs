@@ -120,7 +120,7 @@ namespace Concept.Localization
             var entry = table.GetEntry(key);
             if (entry == null)
             {
-                Debug.LogWarning($"[LocalizationProvider] Entry '{key}' not found in table '{collection}' for locale '{currentLocale.Identifier.Code}'.");
+              //  Debug.LogWarning($"[LocalizationProvider] Entry '{key}' not found in table '{collection}' for locale '{currentLocale.Identifier.Code}'.");
                 return (false, key);
             }
             return (true, entry.Value);
