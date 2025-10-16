@@ -19,6 +19,22 @@ namespace Concept.Addressables
     /// </summary>
     public static class AddressablesManager
     {
+
+        public static async Task<bool> InitializeAsync()
+        {
+            try
+            {
+                await UnityEngine.AddressableAssets.Addressables.InitializeAsync().Task;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AddressablesManager] Falha na inicialização: {e.Message}");
+                return false;
+            }
+        }
+
+
         /// <summary>
         /// Loads a single asset from a PackSeparately bundle group
         /// </summary>
