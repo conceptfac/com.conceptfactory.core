@@ -21,6 +21,9 @@ namespace Concept.Localization
 
         private static List<Func<Task>> m_updateActions = new List<Func<Task>>();
 
+        public static event Action OnLocalizationInitialize;
+
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         /// <summary>
         /// Initializes the localization system after the scene load.
@@ -44,8 +47,12 @@ namespace Concept.Localization
             var init = LocalizationSettings.InitializationOperation;
             await init.Task;
 
-            isRunning = init.Status == AsyncOperationStatus.Succeeded;
+            if (init.Status != AsyncOperationStatus.Succeeded) return;
+
+            isRunning = true;
+        
             LocalizationSettings.SelectedLocaleChanged += UpdateLocalizedElements;
+            OnLocalizationInitialize?.Invoke();
         }
 
         /// <summary>
