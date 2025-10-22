@@ -11,6 +11,7 @@ using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using System.Reflection;
+using UnityEditor;
 
 namespace Concept.Addressables
 {
@@ -32,6 +33,21 @@ namespace Concept.Addressables
                 Debug.LogError($"[AddressablesManager] Falha na inicialização: {e.Message}");
                 return false;
             }
+        }
+
+
+        public static async Task<bool> LoadContentCatalogAsync(string catalogURL)
+        {
+            var handle = UnityEngine.AddressableAssets.Addressables.LoadContentCatalogAsync(catalogURL);
+            await handle.Task;
+
+            if (handle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Debug.LogError($"Falha ao carregar catálogo do módulo: {catalogURL}");
+                return false;
+            }
+            Debug.Log("Catálogo do módulo carregado com sucesso!\n"+catalogURL);
+            return true;
         }
 
 
@@ -728,8 +744,20 @@ namespace Concept.Addressables
             return tcs.Task;
         }
 
-        private static string GetPlatformFolder()
+        public static string GetPlatformFolder()
         {
+#if UNITY_EDITOR
+            // Pega o build target definido na Unity
+            switch (EditorUserBuildSettings.activeBuildTarget)
+            {
+                case BuildTarget.Android: return "Android";
+                case BuildTarget.iOS: return "iOS";
+                case BuildTarget.StandaloneWindows:
+                case BuildTarget.StandaloneWindows64: return "Windows";
+                case BuildTarget.StandaloneOSX: return "OSX";
+                default: return "Standalone";
+            }
+#else
             switch (Application.platform)
             {
                 case RuntimePlatform.Android:
@@ -745,6 +773,7 @@ namespace Concept.Addressables
                 default:
                     return "Standalone";
             }
+#endif
         }
 
     }
