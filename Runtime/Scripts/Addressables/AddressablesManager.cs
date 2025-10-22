@@ -721,12 +721,12 @@ namespace Concept.Addressables
 
                     if (webRequest.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
                     {
-                        Debug.Log($"[AddressablesManager] ✅ URL acessível: {url}");
+                        Debug.Log($"[AddressablesManager] URL acessível: {url}");
                         return true;
                     }
                     else
                     {
-                        Debug.Log($"[AddressablesManager] ❌ URL não acessível: {url} - {webRequest.error}");
+                        Debug.Log($"[AddressablesManager] URL não acessível: {url} - {webRequest.error}");
                         return false;
                     }
                 }
