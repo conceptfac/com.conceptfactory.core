@@ -12,6 +12,7 @@ using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using System.Reflection;
 using UnityEditor;
+using UnityEngine.SceneManagement;
 
 namespace Concept.Addressables
 {
@@ -38,16 +39,18 @@ namespace Concept.Addressables
 
         public static async Task<bool> LoadContentCatalogAsync(string catalogURL)
         {
-            var handle = UnityEngine.AddressableAssets.Addressables.LoadContentCatalogAsync(catalogURL);
+            var handle = UnityEngine.AddressableAssets.Addressables.LoadContentCatalogAsync(catalogURL, false);
             await handle.Task;
 
-            if (handle.Status != AsyncOperationStatus.Succeeded)
-            {
+            bool success = handle.Status == AsyncOperationStatus.Succeeded;
+            if (success)
+                Debug.Log("Catálogo do módulo carregado com sucesso!\n" + catalogURL);
+            else
                 Debug.LogError($"Falha ao carregar catálogo do módulo: {catalogURL}");
-                return false;
-            }
-            Debug.Log("Catálogo do módulo carregado com sucesso!\n"+catalogURL);
-            return true;
+
+
+
+            return success;
         }
 
 
@@ -577,7 +580,6 @@ namespace Concept.Addressables
             return null;
         }
 
-
         public static async Task<string> GetCachedBundlePathAsync(string key)
         {
             try
@@ -645,7 +647,6 @@ namespace Concept.Addressables
             }
         }
 
-
         /// <summary>
         /// Garante que o asset foi baixado e retorna o path físico no cache.
         /// </summary>
@@ -695,7 +696,6 @@ namespace Concept.Addressables
                 return null;
             }
         }
-
 
         private static async Task<bool> TestUrlAccess(string url)
         {
@@ -775,6 +775,64 @@ namespace Concept.Addressables
             }
 #endif
         }
+
+
+
+        // Carrega a cena pelo endereço (Addressable Key)
+        public static async Task<SceneInstance> LoadAddressableScene(string sceneKey, bool additive = false)
+        {
+            LoadSceneMode mode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
+
+            AsyncOperationHandle<SceneInstance> handle = UnityEngine.AddressableAssets.Addressables.LoadSceneAsync(sceneKey, mode);
+
+            // Espera terminar o carregamento
+            await handle.Task;
+
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                Debug.Log($"Cena '{sceneKey}' carregada com sucesso!");
+            }
+            else
+            {
+                Debug.LogError($"Falha ao carregar a cena '{sceneKey}'");
+            }
+
+            return handle.Result;
+            // Opcional: se você não vai mais precisar do handle
+            // Addressables.Release(handle);
+        }
+
+        public static async Task UnloadAddressableScene(SceneInstance sceneInstance, string sceneKey = "Unknown")
+        {
+            try
+            {
+                if (!sceneInstance.Scene.isLoaded)
+                {
+                    Debug.LogWarning($"Cena {sceneKey} já não está carregada");
+                    return;
+                }
+
+                Debug.Log($"Descarregando cena: {sceneKey}");
+
+                var unloadHandle = UnityEngine.AddressableAssets.Addressables.UnloadSceneAsync(sceneInstance);
+                await unloadHandle.Task;
+
+                if (unloadHandle.Status == AsyncOperationStatus.Succeeded)
+                {
+                    Debug.Log($"Cena '{sceneKey}' descarregada com sucesso");
+                }
+                else
+                {
+                    Debug.LogError($"Falha ao descarregar cena '{sceneKey}': {unloadHandle.OperationException}");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Erro ao descarregar cena {sceneKey}: {e}");
+            }
+        }
+
+
 
     }
 
