@@ -13,6 +13,7 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine.SceneManagement;
+using Concept.Helpers;
 
 namespace Concept.Addressables
 {
@@ -36,8 +37,45 @@ namespace Concept.Addressables
             }
         }
 
+        public static async Task<bool> LoadContentCatalogAsync(
+    string catalogURL,
+    Action<float> progressCallback = null
+)
+        {
+            try
+            {
+                var handle = UnityEngine.AddressableAssets.Addressables.LoadContentCatalogAsync(catalogURL, false);
 
-        public static async Task<bool> LoadContentCatalogAsync(string catalogURL)
+                // Loop de progresso
+                while (!handle.IsDone)
+                {
+                    progressCallback?.Invoke(handle.PercentComplete);
+                    await Task.Yield();
+                }
+
+                bool success = handle.Status == AsyncOperationStatus.Succeeded;
+
+                if (success)
+                {
+                    progressCallback?.Invoke(1f);
+                    Debug.Log($"[AddressablesManager] Catálogo carregado com sucesso!\n{catalogURL}");
+                }
+                else
+                {
+                    Debug.LogError($"[AddressablesManager] Falha ao carregar catálogo do módulo: {catalogURL}");
+                }
+
+                return success;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AddressablesManager] Erro ao carregar catálogo: {e.Message}");
+                return false;
+            }
+        }
+
+
+        public static async Task<bool> LoadContentCatalogAsyncOLD(string catalogURL)
         {
             var handle = UnityEngine.AddressableAssets.Addressables.LoadContentCatalogAsync(catalogURL, false);
             await handle.Task;
@@ -53,6 +91,14 @@ namespace Concept.Addressables
             return success;
         }
 
+        public static async Task<(bool status, long length)> GetDownloadSize(string assetKey)
+        {
+            AsyncOperationHandle<long> sizeOperation = GetDownloadSizeAsync(assetKey);
+            await sizeOperation.Task;
+
+            return (sizeOperation.Status == AsyncOperationStatus.Succeeded, sizeOperation.Result);
+
+        }
 
         /// <summary>
         /// Loads a single asset from a PackSeparately bundle group
@@ -61,18 +107,90 @@ namespace Concept.Addressables
         /// <param name="assetKey">Specific asset addressable key</param>
         /// <param name="progressCallback">Optional progress callback (0.0 to 1.0)</param>
         /// <returns>Loaded asset or null if failed</returns>
-        public static async Task<T> LoadSeparateAssetAsync<T>(string assetKey, Action<float> progressCallback = null) where T : UnityEngine.Object
+        public static async Task<T> LoadSeparateAssetAsync<T>(
+            string assetKey,
+            Action<float> progressCallback = null
+        ) where T : UnityEngine.Object
         {
             try
             {
-                Debug.Log($"[AddressablesManager] Loading separate asset: {assetKey}");
+                // Verifica tamanho do download
+                AsyncOperationHandle<long> sizeOperation = GetDownloadSizeAsync(assetKey);
+                await sizeOperation.Task;
+
+                if (sizeOperation.Status == AsyncOperationStatus.Succeeded && sizeOperation.Result > 0)
+                {
+                    Debug.LogWarning($"[AddressablesManager] Download size: {sizeOperation.Result.GetBytes()}");
+
+                    // Faz o download das dependências
+                    AsyncOperationHandle downloadOperation = DownloadDependenciesAsync(assetKey, false);
+
+                    while (!downloadOperation.IsDone)
+                    {
+                        // 0f–0.5f → progresso de download
+                        progressCallback?.Invoke(downloadOperation.PercentComplete * 0.5f);
+                        await Task.Yield();
+                    }
+
+                    if (downloadOperation.Status != AsyncOperationStatus.Succeeded)
+                    {
+                        Debug.LogError($"[AddressablesManager] Download failed for: {assetKey}");
+                        Release(downloadOperation);
+                        Release(sizeOperation);
+                        return null;
+                    }
+
+                    Release(downloadOperation);
+                    progressCallback?.Invoke(0.5f);
+                }
+
+                Release(sizeOperation);
+
+                // Carrega o asset em memória
+                AsyncOperationHandle<T> loadOperation = LoadAssetAsync<T>(assetKey);
+
+                while (!loadOperation.IsDone)
+                {
+                    // 0.5f–1f → progresso de load
+                    progressCallback?.Invoke(0.5f + loadOperation.PercentComplete * 0.5f);
+                    await Task.Yield();
+                }
+
+                if (loadOperation.Status == AsyncOperationStatus.Succeeded)
+                {
+                    Debug.Log($"[AddressablesManager] Successfully loaded: {assetKey}");
+                    progressCallback?.Invoke(1f);
+
+                    T result = loadOperation.Result;
+                    Release(loadOperation);
+                    return result;
+                }
+                else
+                {
+                    Debug.LogError($"[AddressablesManager] Failed to load asset: {assetKey}");
+                    Release(loadOperation);
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AddressablesManager] Error loading {assetKey}: {e.Message}");
+                return null;
+            }
+        }
+
+        public static async Task<T> LoadSeparateAssetAsyncOLD<T>(string assetKey, Action<float> progressCallback = null) where T : UnityEngine.Object
+        {
+            try
+            {
+                //Debug.LogWarning($"[AddressablesManager] Loading separate asset: {assetKey}");
 
                 // Check download size
                 AsyncOperationHandle<long> sizeOperation = GetDownloadSizeAsync(assetKey);
                 await sizeOperation.Task;
                 if (sizeOperation.Status == AsyncOperationStatus.Succeeded && sizeOperation.Result > 0)
                 {
-                    Debug.Log($"[AddressablesManager] Download size: {sizeOperation.Result} bytes");
+                    Debug.LogWarning($"[AddressablesManager] Download size: {sizeOperation.Result.GetBytes()}");
 
                     // Download only this specific asset
                     AsyncOperationHandle downloadOperation = DownloadDependenciesAsync(assetKey, false);
@@ -777,9 +895,39 @@ namespace Concept.Addressables
         }
 
 
+        public static async Task<SceneInstance> LoadAddressableScene(
+            string sceneKey,
+            bool additive = false,
+            Action<float> onProgress = null)
+        {
+            LoadSceneMode mode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
 
-        // Carrega a cena pelo endereço (Addressable Key)
-        public static async Task<SceneInstance> LoadAddressableScene(string sceneKey, bool additive = false)
+            // Inicia o carregamento (pode incluir download se necessário)
+            AsyncOperationHandle<SceneInstance> handle = UnityEngine.AddressableAssets.Addressables.LoadSceneAsync(sceneKey, mode);
+
+            // Monitora o progresso até concluir
+            while (!handle.IsDone)
+            {
+                onProgress?.Invoke(handle.PercentComplete);
+                await Task.Yield(); // evita travar o thread principal
+            }
+
+            // Confere o resultado final
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                Debug.Log($"Cena '{sceneKey}' carregada com sucesso!");
+            }
+            else
+            {
+                Debug.LogError($"Falha ao carregar a cena '{sceneKey}'");
+            }
+
+            return handle.Result;
+        }
+
+
+
+        public static async Task<SceneInstance> LoadAddressableSceneOLD(string sceneKey, bool additive = false)
         {
             LoadSceneMode mode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
 

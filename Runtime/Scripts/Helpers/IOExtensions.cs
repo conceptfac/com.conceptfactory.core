@@ -5,10 +5,11 @@ using UnityEngine;
 using System.Threading;
 using System.IO;
 using UnityEditor;
+using System.Collections.Generic;
 
 namespace Concept.Helpers
 {
-    public static class AssetIO
+    public static class IOExtensions
     {
         [System.Serializable]
         private class PackageJson
@@ -39,7 +40,7 @@ namespace Concept.Helpers
 
             if (string.IsNullOrEmpty(directory))
             {
-                Debug.LogError("[AssetIO] Impossible to found package.json");
+                Debug.LogError("[IOExtensions] Impossible to found package.json");
                 return null;
             }
 
@@ -72,12 +73,12 @@ namespace Concept.Helpers
                 }
                 else
                 {
-                    Debug.LogError($"[AssetIO] Package '{packageName}' not found.");
+                    Debug.LogError($"[IOExtensions] Package '{packageName}' not found.");
                 }
             }
             else
             {
-                Debug.LogError($"[AssetIO] Unable to retrieve package list. Error: {listRequest.Error.message}");
+                Debug.LogError($"[IOExtensions] Unable to retrieve package list. Error: {listRequest.Error.message}");
             }
 
             return string.Empty;
@@ -86,9 +87,20 @@ namespace Concept.Helpers
         {
             return GetPackageAbsolutePath(AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(scriptableObject)));
         }
-    
-        
-    
+
+        public static string GetBytes(this long bytes)
+        {
+            if (bytes < 1024) return $"{bytes} B";
+            double kb = bytes / 1024.0;
+            if (kb < 1024) return $"{kb:F2} KB";
+            double mb = kb / 1024.0;
+            if (mb < 1024) return $"{mb:F2} MB";
+            double gb = mb / 1024.0;
+            if (gb < 1024) return $"{gb:F2} GB";
+            double tb = gb / 1024.0;
+            return $"{tb:F2} TB";
+        }
+
     }
 
 
