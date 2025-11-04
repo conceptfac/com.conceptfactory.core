@@ -74,7 +74,7 @@ namespace Concept.Localization
         /// Sets the active locale synchronously using the locale code.
         /// </summary>
         /// <param name="localeCode">The identifier code of the locale (e.g., "en", "fr").</param>
-        public static void SetLocale(string localeCode)
+        public static async void SetLocale(string localeCode)
         {
             var currentLocale = LocalizationSettings.AvailableLocales.GetLocale(localeCode);
             if (currentLocale != null && currentLocale != LocalizationSettings.SelectedLocale)
@@ -107,13 +107,19 @@ namespace Concept.Localization
             }
 
             var currentLocale = LocalizationSettings.SelectedLocale;
+            if(currentLocale == null)
+            {
+                Debug.LogWarning($"[LocalizationProvider] No locale selected in LocalizationSettings.");
+                return (false, key);
+            }
+
 
             var tableHandle = LocalizationSettings.StringDatabase.GetTableAsync(collection, currentLocale);
             await tableHandle.Task;
 
             if (tableHandle.Status != AsyncOperationStatus.Succeeded || tableHandle.Result == null)
             {
-                Debug.LogWarning($"[LocalizationProvider] Table '{collection}' not found for locale '{currentLocale.Identifier.Code}'.");
+                Debug.LogWarning($"[LocalizationProvider] Table '{collection}' not found for locale '{currentLocale.Identifier}'.");
                 return (false, key);
             }
 
@@ -127,7 +133,7 @@ namespace Concept.Localization
             var entry = table.GetEntry(key);
             if (entry == null)
             {
-              //  Debug.LogWarning($"[LocalizationProvider] Entry '{key}' not found in table '{collection}' for locale '{currentLocale.Identifier.Code}'.");
+                 Debug.LogWarning($"[LocalizationProvider] Entry '{key}' not found in table '{collection}' for locale '{currentLocale.Identifier.Code}'.");
                 return (false, key);
             }
             return (true, entry.Value);

@@ -981,7 +981,18 @@ namespace Concept.Addressables
         }
 
 
-
+        public static string GetBytes(this long bytes)
+        {
+            if (bytes < 1024) return $"{bytes} B";
+            double kb = bytes / 1024.0;
+            if (kb < 1024) return $"{kb:F2} KB";
+            double mb = kb / 1024.0;
+            if (mb < 1024) return $"{mb:F2} MB";
+            double gb = mb / 1024.0;
+            if (gb < 1024) return $"{gb:F2} GB";
+            double tb = gb / 1024.0;
+            return $"{tb:F2} TB";
+        }
     }
 
 
