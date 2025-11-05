@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Concept.Core
 {
@@ -15,7 +13,7 @@ namespace Concept.Core
         /// <summary>
         /// A list that holds all registered callbacks.
         /// </summary>
-        private static List<object> callBacks = new List<object>();
+        private static List<object> callbacks = new List<object>();
         /// <summary>
         /// Registers a callback of type <typeparamref name="T"/> to the handler.
         /// The callback will be stored and can later be invoked or unregistered.
@@ -24,9 +22,9 @@ namespace Concept.Core
         /// <param name="callback">The callback instance to register.</param>
         public static void RegisterCallback<T>(T callback) where T : class
         {
-            if (!callBacks.Contains(callback))
+            if (!callbacks.Contains(callback))
             {
-                callBacks.Add(callback);
+                callbacks.Add(callback);
             }
         }
         /// <summary>
@@ -37,9 +35,9 @@ namespace Concept.Core
         /// <param name="callback">The callback instance to unregister.</param>
         public static void UnregisterCallback<T>(T callback) where T : class
         {
-            if (callBacks.Contains(callback))
+            if (callbacks.Contains(callback))
             {
-                callBacks.Remove(callback);
+                callbacks.Remove(callback);
             }
         }
         /// <summary>
@@ -50,7 +48,7 @@ namespace Concept.Core
         /// <param name="action">The action to perform on each callback.</param>
         public static void CallAction<T>(Action<T> action) where T : class
         {
-            var snapshot = callBacks.ToArray(); // Cria uma cópia (snapshot) da lista atual
+            var snapshot = callbacks.ToArray(); // Cria uma cópia (snapshot) da lista atual
 
             foreach (var callback in snapshot)
             {
@@ -68,7 +66,7 @@ namespace Concept.Core
         /// <returns>A task representing the asynchronous operation.</returns>
         public static async Task CallTask<T>(Func<T, Task> task) where T : class
         {
-            foreach (var callback in callBacks)
+            foreach (var callback in callbacks)
             {
                 await task(callback as T);
             }
