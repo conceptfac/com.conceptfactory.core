@@ -120,7 +120,7 @@ namespace Concept.Addressables
 
                 if (sizeOperation.Status == AsyncOperationStatus.Succeeded && sizeOperation.Result > 0)
                 {
-                    Debug.LogWarning($"[AddressablesManager] Download size: {sizeOperation.Result.GetBytes()}");
+                    //Debug.LogWarning($"[AddressablesManager] Download size: {sizeOperation.Result.GetBytes()}");
 
                     // Faz o download das dependências
                     AsyncOperationHandle downloadOperation = DownloadDependenciesAsync(assetKey, false);
@@ -190,7 +190,7 @@ namespace Concept.Addressables
                 await sizeOperation.Task;
                 if (sizeOperation.Status == AsyncOperationStatus.Succeeded && sizeOperation.Result > 0)
                 {
-                    Debug.LogWarning($"[AddressablesManager] Download size: {sizeOperation.Result.GetBytes()}");
+                    //Debug.LogWarning($"[AddressablesManager] Download size: {sizeOperation.Result.GetBytes()}");
 
                     // Download only this specific asset
                     AsyncOperationHandle downloadOperation = DownloadDependenciesAsync(assetKey, false);
