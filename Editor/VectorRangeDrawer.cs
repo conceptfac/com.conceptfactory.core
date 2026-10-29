@@ -20,7 +20,7 @@ namespace Concept.Editor
         private static Dictionary<string, int> activeHandles = new Dictionary<string, int>();
 
         private string GetPropertyKey(SerializedProperty property)
-            => property.serializedObject.targetObject.GetInstanceID() + "_" + property.propertyPath;
+            => property.serializedObject.targetObject.GetHashCode() + "_" + property.propertyPath; // per-instance id; GetInstanceID is obsolete on newer Unity, GetEntityId missing on older
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {

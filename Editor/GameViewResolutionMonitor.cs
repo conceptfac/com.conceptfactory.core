@@ -33,11 +33,12 @@ public static class GameViewResolutionMonitor
         }
     }
 
+    // Looked up once: this runs every editor update.
+    private static readonly MethodInfo GetSizeOfMainGameView =
+        Type.GetType("UnityEditor.GameView,UnityEditor")?.GetMethod("GetSizeOfMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
+
     public static Vector2Int GetMainGameViewResolution()
     {
-        Type T = Type.GetType("UnityEditor.GameView,UnityEditor");
-        MethodInfo GetSizeOfMainGameView = T.GetMethod("GetSizeOfMainGameView", BindingFlags.NonPublic | BindingFlags.Static);
-
         if (GetSizeOfMainGameView != null)
         {
             object resolution = GetSizeOfMainGameView.Invoke(null, null);
